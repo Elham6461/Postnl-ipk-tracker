@@ -1,457 +1,414 @@
 <!DOCTYPE html>
-<html lang="nl">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>PostNL IPK – Outbound Tracker</title>
+<title>PostNL Letter Mail Tracker</title>
 <style>
   :root {
-    --bg: #f5f4f0;
-    --bg2: #ffffff;
-    --bg3: #eeece6;
-    --border: rgba(0,0,0,0.1);
-    --border2: rgba(0,0,0,0.18);
-    --text: #1a1a18;
-    --text2: #6b6a65;
-    --text3: #9e9d97;
-    --blue-bg: #e6f1fb; --blue-text: #0c447c; --blue-border: #378add;
-    --green-bg: #eaf3de; --green-text: #27500a; --green-border: #639922;
-    --amber-bg: #faeeda; --amber-text: #633806; --amber-border: #ba7517;
-    --purple-bg: #eeedfe; --purple-text: #3c3489; --purple-border: #7f77dd;
-    --red-bg: #fcebeb; --red-text: #791f1f; --red-border: #e24b4a;
-    --coral-bg: #faece7; --coral-text: #712b13; --coral-border: #d85a30;
-    --gray-bg: #e8e6df; --gray-text: #444441; --gray-border: #888780;
-    --radius: 8px; --radius-lg: 12px;
-    --font: 'Segoe UI', system-ui, sans-serif;
-    --font-mono: 'Consolas', 'Courier New', monospace;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #1c1c1a; --bg2: #252523; --bg3: #2e2e2b;
-      --border: rgba(255,255,255,0.1); --border2: rgba(255,255,255,0.18);
-      --text: #e8e6df; --text2: #9e9d97; --text3: #6b6a65;
-      --blue-bg: #0c2d4a; --blue-text: #85b7eb;
-      --green-bg: #152608; --green-text: #97c459;
-      --amber-bg: #2e1c04; --amber-text: #fac775;
-      --purple-bg: #1e1a45; --purple-text: #afa9ec;
-      --red-bg: #2d1010; --red-text: #f09595;
-      --coral-bg: #2d150d; --coral-text: #f0997b;
-      --gray-bg: #2c2c2a; --gray-text: #b4b2a9;
-    }
+    --bg: #f5f4f0; --bg2: #ffffff; --bg3: #eeece6;
+    --border: rgba(0,0,0,.1); --border2: rgba(0,0,0,.18);
+    --text: #1a1a18; --text2: #6b6a65; --text3: #9e9d97;
+    --radius: 8px;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: var(--font); background: var(--bg); color: var(--text); font-size: 14px; }
-
-  /* TOP BAR */
-  .topbar {
-    background: var(--bg2); border-bottom: 1px solid var(--border);
-    padding: 12px 20px; display: flex; align-items: center; gap: 14px; position: sticky; top: 0; z-index: 10;
+  body { font-family: "Segoe UI", system-ui, sans-serif; background: var(--bg); color: var(--text); font-size: 14px; }
+  .topbar { background: var(--bg2); border-bottom: 1px solid var(--border); padding: 12px 16px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .topbar h1 { font-size: 16px; margin-right: auto; }
+  .ctrl { display: flex; align-items: center; gap: 6px; }
+  .ctrl label { font-size: 12px; color: var(--text2); }
+  .sel, .txt, .area {
+    border: 1px solid var(--border2); border-radius: var(--radius);
+    background: var(--bg3); color: var(--text); padding: 6px 9px; font-size: 12px;
   }
-  .logo { width: 32px; height: 32px; background: #f60; border-radius: 6px; display: flex; align-items: center; justify-content: center; }
-  .logo span { color: #fff; font-weight: 700; font-size: 13px; letter-spacing: -1px; }
-  .topbar-info { flex: 1; }
-  .topbar-title { font-size: 15px; font-weight: 600; color: var(--text); }
-  .topbar-sub { font-size: 11px; color: var(--text2); margin-top: 1px; }
-  .topbar-right { display: flex; align-items: center; gap: 10px; }
-  select.sel {
-    font-size: 12px; padding: 5px 10px; border: 1px solid var(--border2);
-    border-radius: var(--radius); background: var(--bg3); color: var(--text); cursor: pointer;
-  }
-  .sum-chips { display: flex; gap: 6px; flex-wrap: wrap; }
-  .chip { font-size: 11px; padding: 3px 10px; border-radius: 20px; border: 1px solid var(--border); background: var(--bg3); color: var(--text2); white-space: nowrap; }
+  .sum-chips { display: flex; gap: 6px; flex-wrap: wrap; width: 100%; }
+  .chip { font-size: 11px; border: 1px solid var(--border); background: var(--bg3); color: var(--text2); border-radius: 20px; padding: 3px 9px; }
 
-  /* LAYOUT */
-  .main { display: flex; height: calc(100vh - 57px); }
-
-  /* SIDEBAR */
-  .sidebar { width: 230px; min-width: 230px; background: var(--bg2); border-right: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden; }
-  .sidebar-search { padding: 10px 12px; border-bottom: 1px solid var(--border); }
-  .sidebar-search input { width: 100%; font-size: 12px; padding: 5px 8px; border: 1px solid var(--border2); border-radius: var(--radius); background: var(--bg3); color: var(--text); }
-  .sidebar-search input:focus { outline: none; border-color: var(--blue-border); }
+  .main { display: flex; height: calc(100vh - 102px); }
+  .sidebar { width: 300px; min-width: 300px; border-right: 1px solid var(--border); background: var(--bg2); display: flex; flex-direction: column; }
+  .sidebar-search { padding: 10px; border-bottom: 1px solid var(--border); }
+  .sidebar-search input { width: 100%; }
   .sidebar-scroll { overflow-y: auto; flex: 1; }
-  .sidebar-label { font-size: 10px; font-weight: 600; color: var(--text3); padding: 8px 14px 4px; letter-spacing: .06em; text-transform: uppercase; }
-  .country-row {
-    display: flex; align-items: center; gap: 8px; padding: 8px 14px;
-    cursor: pointer; border-left: 3px solid transparent; transition: background .1s;
-  }
+  .country-row { display: flex; align-items: center; gap: 8px; padding: 9px 12px; cursor: pointer; border-left: 3px solid transparent; }
   .country-row:hover { background: var(--bg3); }
-  .country-row.active { background: var(--blue-bg); border-left-color: var(--blue-border); }
-  .c-code { font-family: var(--font-mono); font-size: 11px; color: var(--text3); min-width: 34px; }
-  .c-name { font-size: 13px; color: var(--text); flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .s-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-  .d-Pending { background: #fac775; } .d-Received { background: #85b7eb; }
-  .d-Accepted { background: #97c459; } .d-Amended { background: #afa9ec; }
-  .d-Rejected { background: #f09595; } .d-Dispute { background: #f0997b; }
-  .d-Closed { background: #b4b2a9; }
-
-  /* DETAIL PANEL */
-  .detail { flex: 1; overflow-y: auto; padding: 20px 24px; }
-  .detail-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 16px; }
-  .detail-title { font-size: 20px; font-weight: 600; }
-  .detail-meta { font-size: 12px; color: var(--text2); margin-top: 3px; font-family: var(--font-mono); }
-  .badge { display: inline-block; font-size: 11px; padding: 4px 12px; border-radius: 20px; font-weight: 600; border: 1px solid transparent; }
-  .b-Pending { background: var(--amber-bg); color: var(--amber-text); border-color: var(--amber-border); }
-  .b-Received { background: var(--blue-bg); color: var(--blue-text); border-color: var(--blue-border); }
-  .b-Accepted { background: var(--green-bg); color: var(--green-text); border-color: var(--green-border); }
-  .b-Amended { background: var(--purple-bg); color: var(--purple-text); border-color: var(--purple-border); }
-  .b-Rejected { background: var(--red-bg); color: var(--red-text); border-color: var(--red-border); }
-  .b-Dispute { background: var(--coral-bg); color: var(--coral-text); border-color: var(--coral-border); }
-  .b-Closed { background: var(--gray-bg); color: var(--gray-text); border-color: var(--gray-border); }
-
-  .stat-cards { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; margin-bottom: 16px; }
-  .stat-card { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 12px 14px; }
-  .stat-label { font-size: 11px; color: var(--text2); margin-bottom: 5px; }
-  .stat-val { font-size: 15px; font-weight: 600; color: var(--text); }
-
-  .section { background: var(--bg2); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 16px; margin-bottom: 14px; }
-  .section-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
-  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px; }
-  .form-group { display: flex; flex-direction: column; gap: 4px; }
-  .form-label { font-size: 11px; color: var(--text2); font-weight: 500; }
-  .form-control {
-    font-size: 13px; padding: 7px 10px; border: 1px solid var(--border2);
-    border-radius: var(--radius); background: var(--bg3); color: var(--text);
-    width: 100%; font-family: var(--font);
+  .country-row.active { border-left-color: #378add; background: #e6f1fb; }
+  .c-code { width: 38px; color: var(--text3); font-size: 11px; font-family: Consolas, "Courier New", monospace; }
+  .c-name { flex: 1; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .c-region { font-size: 10px; color: var(--text3); }
+  .detail { flex: 1; padding: 18px 20px; overflow-y: auto; }
+  .section { border: 1px solid var(--border); background: var(--bg2); border-radius: 10px; padding: 14px; margin-bottom: 12px; }
+  .section h2 { font-size: 14px; margin-bottom: 10px; }
+  .tabs, .subtabs { display: flex; gap: 8px; flex-wrap: wrap; }
+  .tab, .subtab, .btn {
+    border: 1px solid var(--border2); border-radius: var(--radius);
+    background: var(--bg3); color: var(--text); padding: 6px 10px; font-size: 12px; cursor: pointer;
   }
-  .form-control:focus { outline: none; border-color: var(--blue-border); }
-  textarea.form-control { resize: vertical; min-height: 64px; }
-
-  .btn { font-size: 12px; padding: 7px 16px; border: 1px solid var(--border2); border-radius: var(--radius); background: var(--bg3); color: var(--text); cursor: pointer; font-family: var(--font); transition: background .15s; }
-  .btn:hover { background: var(--border); }
-  .btn-primary { background: var(--blue-bg); color: var(--blue-text); border-color: var(--blue-border); }
-  .btn-primary:hover { opacity: .85; }
-  .btn-success { background: var(--green-bg); color: var(--green-text); border-color: var(--green-border); }
-  .btn-warn { background: var(--amber-bg); color: var(--amber-text); border-color: var(--amber-border); }
-
-  .save-row { display: flex; justify-content: flex-end; gap: 8px; margin-top: 4px; }
-
-  /* EMAIL LOG */
-  .email-actions { display: flex; gap: 8px; margin-bottom: 12px; flex-wrap: wrap; }
-  .email-item { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
-  .email-item:last-child { border-bottom: none; }
-  .email-dir { font-size: 10px; padding: 2px 8px; border-radius: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; flex-shrink: 0; }
-  .dir-in { background: var(--blue-bg); color: var(--blue-text); }
-  .dir-out { background: var(--green-bg); color: var(--green-text); }
-  .dir-rem { background: var(--amber-bg); color: var(--amber-text); }
-  .email-date { color: var(--text2); min-width: 90px; font-family: var(--font-mono); font-size: 11px; }
-  .email-subject { color: var(--text); flex: 1; }
-  .email-del { color: var(--text3); cursor: pointer; font-size: 16px; line-height: 1; padding: 0 4px; }
-  .email-del:hover { color: var(--red-text); }
-  .empty-msg { font-size: 12px; color: var(--text3); font-style: italic; }
-
-  /* FIGURES */
-  .fig-table { width: 100%; border-collapse: collapse; font-size: 12px; }
-  .fig-table th { font-size: 10px; font-weight: 600; color: var(--text2); text-align: left; padding: 5px 8px; border-bottom: 1px solid var(--border); text-transform: uppercase; letter-spacing: .04em; }
-  .fig-table td { padding: 7px 8px; border-bottom: 1px solid var(--border); color: var(--text); vertical-align: middle; }
-  .fig-table tr:last-child td { border-bottom: none; }
-  .fig-table input { font-size: 12px; padding: 4px 6px; border: 1px solid var(--border2); border-radius: 5px; background: var(--bg3); color: var(--text); width: 100%; font-family: var(--font-mono); }
-  .fig-table input:focus { outline: none; border-color: var(--blue-border); }
-  .kruis { color: var(--red-text); font-weight: 700; font-size: 14px; }
-  .check { color: var(--green-text); font-weight: 700; font-size: 14px; }
-
-  /* EXPORT */
-  .export-bar { display: flex; gap: 8px; justify-content: flex-end; margin-top: 8px; }
-
-  /* SCROLLBAR */
-  ::-webkit-scrollbar { width: 5px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 10px; }
+  .tab.active, .subtab.active { background: #e6f1fb; border-color: #378add; color: #0c447c; }
+  .grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .item { border: 1px solid var(--border); border-radius: var(--radius); padding: 10px; }
+  .item-title { font-size: 12px; color: var(--text2); margin-bottom: 6px; }
+  .kv { display: flex; gap: 8px; align-items: center; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid var(--border); }
+  .kv:last-child { border-bottom: 0; }
+  .badge { font-size: 11px; border-radius: 20px; padding: 3px 9px; border: 1px solid transparent; white-space: nowrap; }
+  .b-not-started { background: #e8e6df; color: #444; border-color: #888; }
+  .b-under-review { background: #faeeda; color: #633806; border-color: #ba7517; }
+  .b-final { background: #eaf3de; color: #27500a; border-color: #639922; }
+  .b-declined { background: #fcebeb; color: #791f1f; border-color: #e24b4a; }
+  .b-yes { background: #eaf3de; color: #27500a; border-color: #639922; }
+  .b-no { background: #fcebeb; color: #791f1f; border-color: #e24b4a; }
+  .muted { color: var(--text2); font-size: 12px; }
+  .empty { color: var(--text3); font-style: italic; }
+  .export-row { margin-top: 10px; display: flex; justify-content: flex-end; }
 </style>
 </head>
 <body>
-
 <div class="topbar">
-  <div class="logo"><span>NL</span></div>
-  <div class="topbar-info">
-    <div class="topbar-title">PostNL IPK – Outbound tracker</div>
-    <div class="topbar-sub">UPU ICT countries · IPK sampling</div>
+  <h1>PostNL Letter Mail Tracker</h1>
+  <div class="ctrl">
+    <label for="year-sel">Year</label>
+    <select id="year-sel" class="sel" onchange="onYearChange(this.value)"></select>
   </div>
-  <div class="topbar-right">
-    <div class="sum-chips" id="sum-chips"></div>
-    <select class="sel" id="period-sel" onchange="renderAll()">
-      <option>2024 – Period 1</option>
-      <option>2024 – Period 2</option>
-      <option>2025 – Period 1</option>
-      <option>2025 – Period 2</option>
+  <div class="ctrl">
+    <label for="region-filter">Region</label>
+    <select id="region-filter" class="sel" onchange="renderAll()"></select>
+  </div>
+  <div class="ctrl">
+    <label for="status-filter">Status</label>
+    <select id="status-filter" class="sel" onchange="renderAll()">
+      <option>All</option>
+      <option>Not started</option>
+      <option>Under review</option>
+      <option>Final</option>
+      <option>Declined</option>
+      <option>Yes</option>
+      <option>No</option>
     </select>
   </div>
+  <div class="sum-chips" id="sum-chips"></div>
 </div>
 
 <div class="main">
-  <div class="sidebar">
+  <aside class="sidebar">
     <div class="sidebar-search">
-      <input type="text" id="search-box" placeholder="Search country…" oninput="renderSidebar()">
+      <input class="txt" id="search-box" type="text" placeholder="Search country..." oninput="renderAll()">
     </div>
-    <div class="sidebar-scroll">
-      <div class="sidebar-label">Countries</div>
-      <div id="sidebar-list"></div>
-    </div>
-  </div>
-  <div class="detail" id="detail-panel"></div>
+    <div class="sidebar-scroll" id="sidebar-list"></div>
+  </aside>
+  <main class="detail" id="detail-panel"></main>
 </div>
 
 <script>
 const COUNTRIES = [
-  {code:'ARA',name:'Argentinie',note:''},
-  {code:'AUA',name:'Australie',note:''},
-  {code:'BRA',name:'Brazilië',note:''},
-  {code:'BGA',name:'Bulgarije',note:''},
-  {code:'CAA',name:'Canada',note:''},
-  {code:'CLA',name:'Chili',note:''},
-  {code:'CNA',name:'China',note:''},
-  {code:'CYA',name:'Cyprus',note:''},
-  {code:'HKA',name:'Hong Kong',note:''},
-  {code:'HRA',name:'Kroatië',note:'e53 IPEP'},
-  {code:'ISA',name:'Israël',note:''},
-  {code:'JEA',name:'Jersey',note:'excl GBHATA'},
-  {code:'JPA',name:'Japan',note:''},
-  {code:'KRA',name:'Zuid-Korea',note:''},
-  {code:'MCA',name:'Monaco',note:''},
-  {code:'MTA',name:'Malta',note:''},
-  {code:'MXA',name:'Mexico',note:''},
-  {code:'MYA',name:'Maleisië',note:''},
-  {code:'NZA',name:'New Zealand',note:''},
-  {code:'RUA',name:'Rusland',note:''},
-  {code:'SGA',name:'Singapore',note:''},
-  {code:'TRA',name:'Turkije',note:''},
-  {code:'TWA',name:'Taiwan',note:''},
-  {code:'UKA',name:'Ukraine',note:''},
-  {code:'USA',name:'USA',note:'zonder IPEP'},
-  {code:'VAA',name:'Vatican City',note:'geen sampling'},
-  {code:'ZAA',name:'Zuid-Afrika',note:''},
+  {code:'ARA',name:'Argentinie',note:'',region:'Americas'},
+  {code:'AUA',name:'Australie',note:'',region:'Asia-Pacific'},
+  {code:'BRA',name:'Brazilië',note:'',region:'Americas'},
+  {code:'BGA',name:'Bulgarije',note:'',region:'Europe & CIS'},
+  {code:'CAA',name:'Canada',note:'',region:'Americas'},
+  {code:'CLA',name:'Chili',note:'',region:'Americas'},
+  {code:'CNA',name:'China',note:'',region:'Asia-Pacific'},
+  {code:'CYA',name:'Cyprus',note:'',region:'Europe & CIS'},
+  {code:'HKA',name:'Hong Kong',note:'',region:'Asia-Pacific'},
+  {code:'HRA',name:'Kroatië',note:'e53 IPEP',region:'Europe & CIS'},
+  {code:'ISA',name:'Israël',note:'',region:'Europe & CIS'},
+  {code:'JEA',name:'Jersey',note:'excl GBHATA',region:'Europe & CIS'},
+  {code:'JPA',name:'Japan',note:'',region:'Asia-Pacific'},
+  {code:'KRA',name:'Zuid-Korea',note:'',region:'Asia-Pacific'},
+  {code:'MCA',name:'Monaco',note:'',region:'Europe & CIS'},
+  {code:'MTA',name:'Malta',note:'',region:'Europe & CIS'},
+  {code:'MXA',name:'Mexico',note:'',region:'Americas'},
+  {code:'MYA',name:'Maleisië',note:'',region:'Asia-Pacific'},
+  {code:'NZA',name:'New Zealand',note:'',region:'Asia-Pacific'},
+  {code:'RUA',name:'Rusland',note:'',region:'Europe & CIS'},
+  {code:'SGA',name:'Singapore',note:'',region:'Asia-Pacific'},
+  {code:'TRA',name:'Turkije',note:'',region:'Europe & CIS'},
+  {code:'TWA',name:'Taiwan',note:'',region:'Asia-Pacific'},
+  {code:'UKA',name:'Ukraine',note:'',region:'Europe & CIS'},
+  {code:'USA',name:'USA',note:'zonder IPEP',region:'Americas'},
+  {code:'VAA',name:'Vatican City',note:'geen sampling',region:'Europe & CIS'},
+  {code:'ZAA',name:'Zuid-Afrika',note:'',region:'Africa'},
 ];
 
-const STATUSES = ['Pending','Received','Accepted','Amended','Rejected','Dispute','Closed'];
-const DECISIONS = ['','Accepted','Accepted with amendments','Rejected','Dispute ongoing','Closed – agreed'];
+const FLOW_STATUSES = ['Not started', 'Under review', 'Final', 'Declined'];
+const YEARS = [String(new Date().getFullYear() - 1), String(new Date().getFullYear()), String(new Date().getFullYear() + 1)];
+const CATEGORIES = ['Weight', 'IPK', 'Agreement', 'Invoice'];
+const QUARTERS = ['Q1', 'Q2', 'Q3', 'Q4'];
 
-let selected = COUNTRIES[0].code;
-let cases = {};
+let selectedYear = YEARS[1];
+let selectedCountry = COUNTRIES[0].code;
+let activeCategory = 'Weight';
+let activeDirection = 'Inbound';
+let tracker = {};
 
-function getCase(code) {
-  if (!cases[code]) cases[code] = {
-    status:'Pending', emailDate:'', responseDate:'', decision:'',
-    amendReason:'', rejectReason:'', note:'', emails:[], figures:[]
+function defaultFlow() {
+  return {Q1:'Not started', Q2:'Not started', Q3:'Not started', Q4:'Not started'};
+}
+
+function defaultRecord() {
+  return {
+    weight: {inbound: defaultFlow(), outbound: defaultFlow()},
+    ipk: {inbound: defaultFlow(), outbound: defaultFlow()},
+    agreement: {kg: 'No', uvcn73: 'No', cn6: 'No'},
+    invoice: {status: 'Not started', note: ''}
   };
-  return cases[code];
 }
 
-function period() { return document.getElementById('period-sel').value; }
+function getRecord(year, code) {
+  if (!tracker[year]) tracker[year] = {};
+  if (!tracker[year][code]) tracker[year][code] = defaultRecord();
+  return tracker[year][code];
+}
 
-function saveCase() {
-  const c = getCase(selected);
-  c.status = v('f-status') || c.status;
-  c.emailDate = v('f-email-date');
-  c.responseDate = v('f-resp-date');
-  c.decision = v('f-decision');
-  c.amendReason = v('f-amend');
-  c.rejectReason = v('f-reject');
-  c.note = v('f-note');
-  // save figures
-  c.figures.forEach((f,i) => {
-    f.item = v('fig-item-'+i) || f.item;
-    f.country = v('fig-country-'+i) || '';
-    f.ours = v('fig-ours-'+i) || '';
-    f.disputed = document.getElementById('fig-disp-'+i)?.checked || false;
-    f.reason = v('fig-reason-'+i) || '';
-  });
+function toBadgeClass(status) {
+  return 'b-' + status.toLowerCase().replace(/\s+/g, '-');
+}
+
+function summarizeFlow(flow) {
+  const values = Object.values(flow);
+  if (values.every(v => v === 'Not started')) return 'Not started';
+  if (values.includes('Declined')) return 'Declined';
+  if (values.includes('Under review')) return 'Under review';
+  if (values.every(v => v === 'Final')) return 'Final';
+  return 'Under review';
+}
+
+function summarizeAgreement(agreement) {
+  return Object.values(agreement).every(v => v === 'Yes') ? 'Yes' : 'No';
+}
+
+function getContextStatus(record) {
+  if (activeCategory === 'Weight') return summarizeFlow(record.weight[activeDirection.toLowerCase()]);
+  if (activeCategory === 'IPK') return summarizeFlow(record.ipk[activeDirection.toLowerCase()]);
+  if (activeCategory === 'Agreement') return summarizeAgreement(record.agreement);
+  return record.invoice.status;
+}
+
+function onYearChange(year) {
+  selectedYear = year;
   renderAll();
-  showSaved();
 }
 
-function v(id) { return document.getElementById(id)?.value || ''; }
-
-function showSaved() {
-  const btn = document.getElementById('save-btn');
-  if (!btn) return;
-  btn.textContent = 'Saved!';
-  btn.style.background = 'var(--green-bg)';
-  btn.style.color = 'var(--green-text)';
-  setTimeout(() => { btn.textContent = 'Save case'; btn.style.background=''; btn.style.color=''; }, 1500);
+function setCategory(category) {
+  activeCategory = category;
+  if (category === 'Agreement' || category === 'Invoice') activeDirection = 'Inbound';
+  renderAll();
 }
 
-function addEmail(dir) {
-  const c = getCase(selected);
-  const today = new Date().toISOString().slice(0,10);
-  const subjects = {Inbound:'Email received from country', Outbound:'Response sent to country', Reminder:'Follow-up reminder sent'};
-  c.emails.unshift({dir, date:today, subject:subjects[dir]});
-  renderDetail();
+function setDirection(direction) {
+  activeDirection = direction;
+  renderAll();
 }
 
-function deleteEmail(idx) {
-  getCase(selected).emails.splice(idx, 1);
-  renderDetail();
+function updateQuarter(category, direction, quarter, value) {
+  const record = getRecord(selectedYear, selectedCountry);
+  record[category][direction][quarter] = value;
+  renderAll();
 }
 
-function addFigure() {
-  getCase(selected).figures.push({item:'', country:'', ours:'', disputed:false, reason:''});
-  renderDetail();
+function updateAgreement(key, value) {
+  getRecord(selectedYear, selectedCountry).agreement[key] = value;
+  renderAll();
 }
 
-function deleteFigure(idx) {
-  getCase(selected).figures.splice(idx, 1);
-  renderDetail();
+function updateInvoiceStatus(value) {
+  getRecord(selectedYear, selectedCountry).invoice.status = value;
+  renderAll();
 }
 
-function exportCSV() {
-  const rows = [['Code','Country','Period','Status','Decision','Email date','Response date','Amendment reason','Rejection reason','Notes']];
-  COUNTRIES.forEach(c => {
-    const cs = getCase(c.code);
-    rows.push([c.code, c.name, period(), cs.status, cs.decision, cs.emailDate, cs.responseDate, cs.amendReason, cs.rejectReason, cs.note]);
+function updateInvoiceNote(value) {
+  getRecord(selectedYear, selectedCountry).invoice.note = value;
+}
+
+function exportYearCSV() {
+  const rows = [['Year', 'Code', 'Country', 'Region', 'Weight Inbound', 'Weight Outbound', 'IPK Inbound', 'IPK Outbound', 'Agreement', 'Invoice']];
+  COUNTRIES.forEach(country => {
+    const record = getRecord(selectedYear, country.code);
+    rows.push([
+      selectedYear,
+      country.code,
+      country.name,
+      country.region,
+      summarizeFlow(record.weight.inbound),
+      summarizeFlow(record.weight.outbound),
+      summarizeFlow(record.ipk.inbound),
+      summarizeFlow(record.ipk.outbound),
+      summarizeAgreement(record.agreement),
+      record.invoice.status
+    ]);
   });
-  const csv = rows.map(r => r.map(x => '"'+(x||'').replace(/"/g,'""')+'"').join(',')).join('\n');
+  const csv = rows.map(r => r.map(v => `"${String(v || '').replace(/"/g, '""')}"`).join(',')).join('\n');
   const a = document.createElement('a');
   a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
-  a.download = 'PostNL_IPK_' + period().replace(/\s/g,'_') + '.csv';
+  a.download = `PostNL_Letter_Mail_${selectedYear}.csv`;
   a.click();
 }
 
-function renderSidebar() {
+function filteredCountries() {
   const q = document.getElementById('search-box').value.toLowerCase();
-  const list = document.getElementById('sidebar-list');
-  list.innerHTML = COUNTRIES
-    .filter(c => !q || c.name.toLowerCase().includes(q) || c.code.toLowerCase().includes(q))
-    .map(c => {
-      const cs = getCase(c.code);
-      return `<div class="country-row${c.code===selected?' active':''}" onclick="select('${c.code}')">
-        <span class="c-code">${c.code}</span>
-        <span class="c-name">${c.name}</span>
-        <span class="s-dot d-${cs.status}"></span>
-      </div>`;
+  const region = document.getElementById('region-filter').value;
+  const statusFilter = document.getElementById('status-filter').value;
+  return COUNTRIES.filter(country => {
+    if (q && !country.name.toLowerCase().includes(q) && !country.code.toLowerCase().includes(q)) return false;
+    if (region !== 'All regions' && country.region !== region) return false;
+    const status = getContextStatus(getRecord(selectedYear, country.code));
+    if (statusFilter !== 'All' && status !== statusFilter) return false;
+    return true;
+  });
+}
+
+function renderSummary() {
+  const counts = {};
+  const statusOptions = activeCategory === 'Agreement' ? ['Yes', 'No'] : FLOW_STATUSES;
+  statusOptions.forEach(status => counts[status] = 0);
+  COUNTRIES.forEach(country => {
+    const status = getContextStatus(getRecord(selectedYear, country.code));
+    if (counts[status] !== undefined) counts[status] += 1;
+  });
+  document.getElementById('sum-chips').innerHTML = statusOptions
+    .filter(status => counts[status] > 0)
+    .map(status => `<span class="chip">${status}: <strong>${counts[status]}</strong></span>`)
+    .join('');
+}
+
+function renderSidebar() {
+  const list = filteredCountries();
+  if (!list.some(country => country.code === selectedCountry)) {
+    selectedCountry = list[0] ? list[0].code : '';
+  }
+  document.getElementById('sidebar-list').innerHTML = list.length === 0
+    ? '<div style="padding:12px" class="empty">No countries match the selected filters.</div>'
+    : list.map(country => {
+      const status = getContextStatus(getRecord(selectedYear, country.code));
+      return `
+        <div class="country-row${country.code===selectedCountry ? ' active' : ''}" onclick="selectedCountry='${country.code}'; renderAll();">
+          <span class="c-code">${country.code}</span>
+          <span class="c-name">${country.name}</span>
+          <span class="badge ${toBadgeClass(status)}">${status}</span>
+        </div>
+        <div class="c-region" style="padding:0 12px 8px 50px">${country.region}</div>`;
     }).join('');
 }
 
-function renderChips() {
-  const counts = {};
-  STATUSES.forEach(s => counts[s] = 0);
-  COUNTRIES.forEach(c => counts[getCase(c.code).status]++);
-  document.getElementById('sum-chips').innerHTML =
-    STATUSES.filter(s => counts[s] > 0)
-      .map(s => `<span class="chip">${s}: <strong>${counts[s]}</strong></span>`).join('');
+function renderCategoryTabs() {
+  return `<div class="tabs">${CATEGORIES.map(category => `
+    <button class="tab${activeCategory===category?' active':''}" onclick="setCategory('${category}')">${category}</button>
+  `).join('')}</div>`;
 }
 
-function select(code) {
-  selected = code;
-  renderAll();
+function renderWeightOrIpk(record, categoryKey, title) {
+  const directionKey = activeDirection.toLowerCase();
+  const flow = record[categoryKey][directionKey];
+  return `
+    <div class="section">
+      <h2>${title}</h2>
+      <div class="muted" style="margin-bottom:10px">Drill-down: Year → Country → ${title} → ${activeDirection} quarterly status</div>
+      <div class="subtabs" style="margin-bottom:10px">
+        <button class="subtab${activeDirection==='Inbound'?' active':''}" onclick="setDirection('Inbound')">Inbound</button>
+        <button class="subtab${activeDirection==='Outbound'?' active':''}" onclick="setDirection('Outbound')">Outbound</button>
+      </div>
+      <div class="item">
+        ${QUARTERS.map(quarter => `
+          <div class="kv">
+            <strong>${quarter}</strong>
+            <select class="sel" onchange="updateQuarter('${categoryKey}','${directionKey}','${quarter}', this.value)">
+              ${FLOW_STATUSES.map(status => `<option value="${status}"${flow[quarter]===status?' selected':''}>${status}</option>`).join('')}
+            </select>
+          </div>
+        `).join('')}
+      </div>
+    </div>`;
+}
+
+function renderAgreement(record) {
+  const items = [
+    {key:'kg', label:'Agreement Kg'},
+    {key:'uvcn73', label:'Agreement UV CN73'},
+    {key:'cn6', label:'Agreement CN6'}
+  ];
+  return `
+    <div class="section">
+      <h2>Agreement</h2>
+      <div class="muted" style="margin-bottom:10px">Yearly contract status (Yes/No)</div>
+      <div class="item">
+        ${items.map(item => `
+          <div class="kv">
+            <span>${item.label}</span>
+            <select class="sel" onchange="updateAgreement('${item.key}', this.value)">
+              <option value="No"${record.agreement[item.key]==='No'?' selected':''}>No</option>
+              <option value="Yes"${record.agreement[item.key]==='Yes'?' selected':''}>Yes</option>
+            </select>
+          </div>
+        `).join('')}
+      </div>
+    </div>`;
+}
+
+function renderInvoice(record) {
+  return `
+    <div class="section">
+      <h2>Invoice</h2>
+      <div class="muted" style="margin-bottom:10px">One yearly invoice record per country</div>
+      <div class="grid">
+        <div class="item">
+          <div class="item-title">Invoice status</div>
+          <select class="sel" onchange="updateInvoiceStatus(this.value)">
+            ${FLOW_STATUSES.map(status => `<option value="${status}"${record.invoice.status===status?' selected':''}>${status}</option>`).join('')}
+          </select>
+        </div>
+        <div class="item">
+          <div class="item-title">Notes</div>
+          <textarea class="area" style="width:100%;min-height:74px" placeholder="Optional invoice note..." oninput="updateInvoiceNote(this.value)">${record.invoice.note || ''}</textarea>
+        </div>
+      </div>
+    </div>`;
 }
 
 function renderDetail() {
-  const country = COUNTRIES.find(c => c.code === selected);
-  const cs = getCase(selected);
-  const p = period();
-
-  document.getElementById('detail-panel').innerHTML = `
-    <div class="detail-header">
-      <div>
-        <div class="detail-title">${country.name}</div>
-        <div class="detail-meta">${country.code}${country.note ? ' · ' + country.note : ''} &nbsp;·&nbsp; ${p}</div>
-      </div>
-      <span class="badge b-${cs.status}">${cs.status}</span>
-    </div>
-
-    <div class="stat-cards">
-      <div class="stat-card"><div class="stat-label">Email received</div><div class="stat-val">${cs.emailDate || '—'}</div></div>
-      <div class="stat-card"><div class="stat-label">Country response</div><div class="stat-val">${cs.responseDate || '—'}</div></div>
-      <div class="stat-card"><div class="stat-label">Decision</div><div class="stat-val" style="font-size:13px">${cs.decision || '—'}</div></div>
-    </div>
-
+  const panel = document.getElementById('detail-panel');
+  if (!selectedCountry) {
+    panel.innerHTML = '<div class="section empty">No country selected for the current filters.</div>';
+    return;
+  }
+  const country = COUNTRIES.find(c => c.code === selectedCountry);
+  const record = getRecord(selectedYear, selectedCountry);
+  const status = getContextStatus(record);
+  const categorySection = activeCategory === 'Weight'
+    ? renderWeightOrIpk(record, 'weight', 'Weight')
+    : activeCategory === 'IPK'
+      ? renderWeightOrIpk(record, 'ipk', 'IPK')
+      : activeCategory === 'Agreement'
+        ? renderAgreement(record)
+        : renderInvoice(record);
+  panel.innerHTML = `
     <div class="section">
-      <div class="section-title">Case details</div>
-      <div class="form-grid">
-        <div class="form-group">
-          <label class="form-label">Status</label>
-          <select class="form-control" id="f-status">
-            ${STATUSES.map(s=>`<option${s===cs.status?' selected':''}>${s}</option>`).join('')}
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Decision outcome</label>
-          <select class="form-control" id="f-decision">
-            ${DECISIONS.map(s=>`<option value="${s}"${s===cs.decision?' selected':''}>${s||'— select —'}</option>`).join('')}
-          </select>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Email received date</label>
-          <input class="form-control" type="date" id="f-email-date" value="${cs.emailDate}">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Country response date</label>
-          <input class="form-control" type="date" id="f-resp-date" value="${cs.responseDate}">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Amendment reason</label>
-          <input class="form-control" type="text" id="f-amend" placeholder="Reason for amendment…" value="${cs.amendReason}">
-        </div>
-        <div class="form-group">
-          <label class="form-label">Rejection reason</label>
-          <input class="form-control" type="text" id="f-reject" placeholder="Reason for rejection…" value="${cs.rejectReason}">
-        </div>
-      </div>
-      <div class="form-group" style="margin-bottom:12px">
-        <label class="form-label">Notes</label>
-        <textarea class="form-control" id="f-note" placeholder="Add notes about this case…">${cs.note}</textarea>
-      </div>
-      <div class="save-row">
-        <button class="btn" onclick="exportCSV()">Export all to CSV</button>
-        <button class="btn btn-primary" id="save-btn" onclick="saveCase()">Save case</button>
-      </div>
+      <h2>${country.name}</h2>
+      <div class="muted">${country.code}${country.note ? ' · ' + country.note : ''} · ${country.region} · Year ${selectedYear}</div>
+      <div style="margin-top:10px"><span class="badge ${toBadgeClass(status)}">${status}</span></div>
     </div>
-
     <div class="section">
-      <div class="section-title">Figures</div>
-      ${cs.figures.length > 0 ? `
-      <table class="fig-table">
-        <thead><tr>
-          <th style="width:22%">Line item</th>
-          <th style="width:16%">Country figure</th>
-          <th style="width:16%">Our figure</th>
-          <th style="width:10%;text-align:center">Disputed</th>
-          <th>Kruis reason</th>
-          <th style="width:32px"></th>
-        </tr></thead>
-        <tbody>
-        ${cs.figures.map((f,i) => `<tr>
-          <td><input id="fig-item-${i}" value="${f.item}" placeholder="Description…"></td>
-          <td><input id="fig-country-${i}" value="${f.country}" placeholder="0.00"></td>
-          <td><input id="fig-ours-${i}" value="${f.ours}" placeholder="0.00"></td>
-          <td style="text-align:center">
-            <input type="checkbox" id="fig-disp-${i}" ${f.disputed?'checked':''}>
-            ${f.disputed ? '<span class="kruis">✕</span>' : '<span class="check">✓</span>'}
-          </td>
-          <td><input id="fig-reason-${i}" value="${f.reason}" placeholder="Reason…"></td>
-          <td><span class="email-del" onclick="deleteFigure(${i})">×</span></td>
-        </tr>`).join('')}
-        </tbody>
-      </table>` : '<div class="empty-msg">No figures added yet.</div>'}
-      <div style="margin-top:10px;display:flex;gap:8px">
-        <button class="btn" onclick="addFigure()">+ Add figure line</button>
-        ${cs.figures.length>0?'<button class="btn btn-primary" onclick="saveCase()">Save figures</button>':''}
-      </div>
+      <h2>Category</h2>
+      ${renderCategoryTabs()}
     </div>
-
+    ${categorySection}
     <div class="section">
-      <div class="section-title">Email log</div>
-      <div class="email-actions">
-        <button class="btn btn-primary" onclick="addEmail('Inbound')">+ Inbound email</button>
-        <button class="btn btn-success" onclick="addEmail('Outbound')">+ Outbound email</button>
-        <button class="btn btn-warn" onclick="addEmail('Reminder')">+ Reminder</button>
+      <div class="export-row">
+        <button class="btn" onclick="exportYearCSV()">Export year overview CSV</button>
       </div>
-      ${cs.emails.length === 0
-        ? '<div class="empty-msg">No emails logged yet.</div>'
-        : cs.emails.map((e,i) => `
-          <div class="email-item">
-            <span class="email-dir dir-${e.dir==='Inbound'?'in':e.dir==='Outbound'?'out':'rem'}">${e.dir}</span>
-            <span class="email-date">${e.date}</span>
-            <span class="email-subject">${e.subject}</span>
-            <span class="email-del" onclick="deleteEmail(${i})">×</span>
-          </div>`).join('')}
-    </div>
-  `;
+    </div>`;
 }
 
 function renderAll() {
+  renderSummary();
   renderSidebar();
-  renderChips();
   renderDetail();
 }
 
+function initControls() {
+  document.getElementById('year-sel').innerHTML = YEARS.map(year => `<option value="${year}"${year===selectedYear?' selected':''}>${year}</option>`).join('');
+  const regions = ['All regions', ...new Set(COUNTRIES.map(country => country.region))];
+  document.getElementById('region-filter').innerHTML = regions.map(region => `<option>${region}</option>`).join('');
+}
+
+initControls();
 renderAll();
 </script>
 </body>
