@@ -83,6 +83,10 @@
     <select id="region-filter" class="sel" onchange="renderAll()"></select>
   </div>
   <div class="ctrl">
+    <label for="category-filter">Country category</label>
+    <select id="category-filter" class="sel" onchange="renderAll()"></select>
+  </div>
+  <div class="ctrl">
     <label for="status-filter">Status</label>
     <select id="status-filter" class="sel" onchange="renderAll()">
       <option>All</option>
@@ -275,10 +279,12 @@ function updateCountryField(code, field, value) {
       return;
     }
     country.code = newCode;
-    if (tracker[selectedYear] && tracker[selectedYear][code]) {
-      tracker[selectedYear][newCode] = tracker[selectedYear][code];
-      delete tracker[selectedYear][code];
-    }
+    Object.keys(tracker).forEach(year => {
+      if (tracker[year] && tracker[year][code]) {
+        tracker[year][newCode] = tracker[year][code];
+        delete tracker[year][code];
+      }
+    });
     if (selectedCountry === code) selectedCountry = newCode;
   } else {
     country[field] = normalizedValue;
@@ -320,12 +326,112 @@ function removeCountryRow(code) {
   if (!country) return;
   if (!confirm(`Delete ${country.name} (${country.code})?`)) return;
   countries = countries.filter(c => c.code !== code);
+  Object.keys(tracker).forEach(year => {
+    if (tracker[year] && tracker[year][code]) delete tracker[year][code];
+  });
   addAuditEntry(code, 'country.deleted', JSON.stringify(country), '');
   if (selectedCountry === code) {
     selectedCountry = countries[0] ? countries[0].code : '';
   }
   initControls();
   renderAll();
+}
+
+function parseCSVLine(line) {
+  const result = [];
+  let current = '';
+  let inQuotes = false;
+  for (let i = 0; i < line.length; i += 1) {
+    const char = line[i];
+    const nextChar = line[i + 1];
+    if (char === '"') {
+      if (inQuotes && nextChar === '"') {
+        current += '"';
+        i += 1;
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (char === ',' && !inQuotes) {
+      result.push(current);
+      current = '';
+    } else {
+      current += char;
+    }
+  }
+  result.push(current);
+  return result.map(value => value.trim());
+}
+
+function importCountriesFile(event) {
+  const file = event.target.files && event.target.files[0];
+  if (!file) return;
+  const fileName = file.name.toLowerCase();
+  if (!fileName.endsWith('.csv')) {
+    alert('Please upload a CSV file. Excel can save files as CSV.');
+    event.target.value = '';
+    return;
+  }
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const text = String(e.target.result || '');
+    const lines = text.split(/\r?\n/).filter(line => line.trim() !== '');
+    if (lines.length < 2) {
+      alert('The CSV file is empty.');
+      event.target.value = '';
+      return;
+    }
+    const headers = parseCSVLine(lines[0]).map(h => h.toLowerCase());
+    const headerIndex = key => headers.indexOf(key);
+    if (headerIndex('code') === -1 || headerIndex('country') === -1) {
+      alert('CSV must contain at least the columns: Code and Country.');
+      event.target.value = '';
+      return;
+    }
+
+    let added = 0;
+    let updated = 0;
+
+    for (let i = 1; i < lines.length; i += 1) {
+      const values = parseCSVLine(lines[i]);
+      const code = (values[headerIndex('code')] || '').trim().toUpperCase();
+      const name = (values[headerIndex('country')] || '').trim();
+      if (!code || !name) continue;
+
+      const incoming = {
+        code,
+        name,
+        region: (headerIndex('region') >= 0 ? values[headerIndex('region')] : '') || 'Europe & CIS',
+        category: (headerIndex('category') >= 0 ? values[headerIndex('category')] : '') || 'Other',
+        documentCode: (headerIndex('document code') >= 0 ? values[headerIndex('document code')] : '') || '',
+        note: (headerIndex('note') >= 0 ? values[headerIndex('note')] : '') || '',
+        extraField1: (headerIndex('extra field 1') >= 0 ? values[headerIndex('extra field 1')] : '') || '',
+        extraField2: (headerIndex('extra field 2') >= 0 ? values[headerIndex('extra field 2')] : '') || ''
+      };
+
+      const existing = getCountry(code);
+      if (existing) {
+        ['name', 'region', 'category', 'documentCode', 'note', 'extraField1', 'extraField2'].forEach(field => {
+          const oldValue = existing[field] || '';
+          const newValue = incoming[field] || '';
+          if (oldValue !== newValue) {
+            existing[field] = newValue;
+            addAuditEntry(code, `country.${field}`, oldValue, newValue);
+          }
+        });
+        updated += 1;
+      } else {
+        countries.push(incoming);
+        addAuditEntry(code, 'country.imported', '', JSON.stringify(incoming));
+        added += 1;
+      }
+    }
+
+    initControls();
+    renderAll();
+    alert(`Import complete. Added: ${added}, Updated: ${updated}`);
+    event.target.value = '';
+  };
+  reader.readAsText(file);
 }
 
 function downloadCSV(rows, fileName) {
@@ -392,10 +498,12 @@ function exportAuditCSV() {
 function filteredCountries() {
   const q = document.getElementById('search-box').value.toLowerCase();
   const region = document.getElementById('region-filter').value;
+  const categoryFilter = document.getElementById('category-filter').value;
   const statusFilter = document.getElementById('status-filter').value;
   return countries.filter(country => {
     if (q && !country.name.toLowerCase().includes(q) && !country.code.toLowerCase().includes(q) && !(country.documentCode || '').toLowerCase().includes(q)) return false;
     if (region !== 'All regions' && country.region !== region) return false;
+    if (categoryFilter !== 'All categories' && country.category !== categoryFilter) return false;
     if (activeCategory !== 'Countries' && activeCategory !== 'History') {
       const status = getContextStatus(getRecord(selectedYear, country.code));
       if (statusFilter !== 'All' && status !== statusFilter) return false;
@@ -524,8 +632,11 @@ function renderCountriesAdmin() {
       <div class="muted" style="margin-bottom:10px">Manage country category, document code and unique country fields.</div>
       <div class="export-row" style="justify-content:flex-start; margin-bottom:10px;">
         <button class="btn" onclick="addCountryRow()">Add new country</button>
+        <button class="btn" onclick="document.getElementById('countries-import').click()">Import countries CSV</button>
         <button class="btn" onclick="exportCountriesCSV()">Export countries Excel/CSV</button>
+        <input id="countries-import" type="file" accept=".csv" style="display:none" onchange="importCountriesFile(event)">
       </div>
+      <div class="muted" style="margin-bottom:10px">Import supported columns: Code, Country, Region, Category, Document Code, Note, Extra Field 1, Extra Field 2</div>
       <div class="table-wrap">
         <table>
           <thead>
@@ -672,6 +783,8 @@ function initControls() {
   document.getElementById('year-sel').innerHTML = YEARS.map(year => `<option value="${year}"${year===selectedYear?' selected':''}>${year}</option>`).join('');
   const regions = ['All regions', ...new Set(countries.map(country => country.region))];
   document.getElementById('region-filter').innerHTML = regions.map(region => `<option>${region}</option>`).join('');
+  const categories = ['All categories', ...new Set(countries.map(country => country.category))];
+  document.getElementById('category-filter').innerHTML = categories.map(category => `<option>${category}</option>`).join('');
 }
 
 initControls();
