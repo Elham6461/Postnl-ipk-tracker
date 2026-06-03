@@ -25,16 +25,18 @@
   .chip { font-size: 11px; border: 1px solid var(--border); background: var(--bg3); color: var(--text2); border-radius: 20px; padding: 3px 9px; }
 
   .main { display: flex; height: calc(100vh - 102px); }
-  .sidebar { width: 300px; min-width: 300px; border-right: 1px solid var(--border); background: var(--bg2); display: flex; flex-direction: column; }
+  .sidebar { width: 340px; min-width: 340px; border-right: 1px solid var(--border); background: var(--bg2); display: flex; flex-direction: column; }
   .sidebar-search { padding: 10px; border-bottom: 1px solid var(--border); }
   .sidebar-search input { width: 100%; }
   .sidebar-scroll { overflow-y: auto; flex: 1; }
-  .country-row { display: flex; align-items: center; gap: 8px; padding: 9px 12px; cursor: pointer; border-left: 3px solid transparent; }
+  .country-row { display: flex; align-items: flex-start; gap: 8px; padding: 9px 12px; cursor: pointer; border-left: 3px solid transparent; }
   .country-row:hover { background: var(--bg3); }
   .country-row.active { border-left-color: #378add; background: #e6f1fb; }
-  .c-code { width: 38px; color: var(--text3); font-size: 11px; font-family: Consolas, "Courier New", monospace; }
-  .c-name { flex: 1; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .c-region { font-size: 10px; color: var(--text3); }
+  .c-code { width: 38px; color: var(--text3); font-size: 11px; font-family: Consolas, "Courier New", monospace; padding-top: 2px; }
+  .c-main { flex: 1; min-width: 0; }
+  .c-name { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .c-meta { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 4px; }
+  .c-sub { font-size: 10px; color: var(--text3); }
   .detail { flex: 1; padding: 18px 20px; overflow-y: auto; }
   .section { border: 1px solid var(--border); background: var(--bg2); border-radius: 10px; padding: 14px; margin-bottom: 12px; }
   .section h2 { font-size: 14px; margin-bottom: 10px; }
@@ -58,7 +60,15 @@
   .b-no { background: #fcebeb; color: #791f1f; border-color: #e24b4a; }
   .muted { color: var(--text2); font-size: 12px; }
   .empty { color: var(--text3); font-style: italic; }
-  .export-row { margin-top: 10px; display: flex; justify-content: flex-end; }
+  .export-row { margin-top: 10px; display: flex; justify-content: flex-end; gap: 8px; flex-wrap: wrap; }
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { border-bottom: 1px solid var(--border); padding: 8px; text-align: left; font-size: 12px; vertical-align: top; }
+  th { color: var(--text2); background: var(--bg3); }
+  .mini-btn {
+    border: 1px solid var(--border2); border-radius: 6px; background: var(--bg3);
+    padding: 4px 8px; font-size: 11px; cursor: pointer;
+  }
 </style>
 </head>
 <body>
@@ -98,46 +108,51 @@
 </div>
 
 <script>
-const COUNTRIES = [
-  {code:'ARA',name:'Argentinie',note:'',region:'Americas'},
-  {code:'AUA',name:'Australie',note:'',region:'Asia-Pacific'},
-  {code:'BRA',name:'Brazilië',note:'',region:'Americas'},
-  {code:'BGA',name:'Bulgarije',note:'',region:'Europe & CIS'},
-  {code:'CAA',name:'Canada',note:'',region:'Americas'},
-  {code:'CLA',name:'Chili',note:'',region:'Americas'},
-  {code:'CNA',name:'China',note:'',region:'Asia-Pacific'},
-  {code:'CYA',name:'Cyprus',note:'',region:'Europe & CIS'},
-  {code:'HKA',name:'Hong Kong',note:'',region:'Asia-Pacific'},
-  {code:'HRA',name:'Kroatië',note:'e53 IPEP',region:'Europe & CIS'},
-  {code:'ISA',name:'Israël',note:'',region:'Europe & CIS'},
-  {code:'JEA',name:'Jersey',note:'excl GBHATA',region:'Europe & CIS'},
-  {code:'JPA',name:'Japan',note:'',region:'Asia-Pacific'},
-  {code:'KRA',name:'Zuid-Korea',note:'',region:'Asia-Pacific'},
-  {code:'MCA',name:'Monaco',note:'',region:'Europe & CIS'},
-  {code:'MTA',name:'Malta',note:'',region:'Europe & CIS'},
-  {code:'MXA',name:'Mexico',note:'',region:'Americas'},
-  {code:'MYA',name:'Maleisië',note:'',region:'Asia-Pacific'},
-  {code:'NZA',name:'New Zealand',note:'',region:'Asia-Pacific'},
-  {code:'RUA',name:'Rusland',note:'',region:'Europe & CIS'},
-  {code:'SGA',name:'Singapore',note:'',region:'Asia-Pacific'},
-  {code:'TRA',name:'Turkije',note:'',region:'Europe & CIS'},
-  {code:'TWA',name:'Taiwan',note:'',region:'Asia-Pacific'},
-  {code:'UKA',name:'Ukraine',note:'',region:'Europe & CIS'},
-  {code:'USA',name:'USA',note:'zonder IPEP',region:'Americas'},
-  {code:'VAA',name:'Vatican City',note:'geen sampling',region:'Europe & CIS'},
-  {code:'ZAA',name:'Zuid-Afrika',note:'',region:'Africa'},
+const CURRENT_USER = 'Elham6461';
+
+const INITIAL_COUNTRIES = [
+  {code:'ARA',name:'Argentinie',note:'',region:'Americas',category:'UPU',documentCode:'',extraField1:'',extraField2:''},
+  {code:'AUA',name:'Australie',note:'',region:'Asia-Pacific',category:'UPU',documentCode:'',extraField1:'',extraField2:''},
+  {code:'BRA',name:'Brazilië',note:'',region:'Americas',category:'UPU',documentCode:'',extraField1:'',extraField2:''},
+  {code:'BGA',name:'Bulgarije',note:'',region:'Europe & CIS',category:'UPU',documentCode:'',extraField1:'',extraField2:''},
+  {code:'CAA',name:'Canada',note:'',region:'Americas',category:'UPU IC',documentCode:'',extraField1:'',extraField2:''},
+  {code:'CLA',name:'Chili',note:'',region:'Americas',category:'UPU',documentCode:'',extraField1:'',extraField2:''},
+  {code:'CNA',name:'China',note:'',region:'Asia-Pacific',category:'UPU IC',documentCode:'',extraField1:'',extraField2:''},
+  {code:'CYA',name:'Cyprus',note:'',region:'Europe & CIS',category:'REIMS',documentCode:'',extraField1:'',extraField2:''},
+  {code:'HKA',name:'Hong Kong',note:'',region:'Asia-Pacific',category:'UPU IC',documentCode:'',extraField1:'',extraField2:''},
+  {code:'HRA',name:'Kroatië',note:'e53 IPEP',region:'Europe & CIS',category:'REIMS',documentCode:'',extraField1:'',extraField2:''},
+  {code:'ISA',name:'Israël',note:'',region:'Europe & CIS',category:'UPU',documentCode:'',extraField1:'',extraField2:''},
+  {code:'JEA',name:'Jersey',note:'excl GBHATA',region:'Europe & CIS',category:'REIMS',documentCode:'',extraField1:'',extraField2:''},
+  {code:'JPA',name:'Japan',note:'',region:'Asia-Pacific',category:'UPU IC',documentCode:'',extraField1:'',extraField2:''},
+  {code:'KRA',name:'Zuid-Korea',note:'',region:'Asia-Pacific',category:'UPU IC',documentCode:'',extraField1:'',extraField2:''},
+  {code:'MCA',name:'Monaco',note:'',region:'Europe & CIS',category:'REIMS',documentCode:'',extraField1:'',extraField2:''},
+  {code:'MTA',name:'Malta',note:'',region:'Europe & CIS',category:'REIMS',documentCode:'',extraField1:'',extraField2:''},
+  {code:'MXA',name:'Mexico',note:'',region:'Americas',category:'UPU',documentCode:'',extraField1:'',extraField2:''},
+  {code:'MYA',name:'Maleisië',note:'',region:'Asia-Pacific',category:'UPU IC',documentCode:'',extraField1:'',extraField2:''},
+  {code:'NZA',name:'New Zealand',note:'',region:'Asia-Pacific',category:'UPU',documentCode:'',extraField1:'',extraField2:''},
+  {code:'RUA',name:'Rusland',note:'',region:'Europe & CIS',category:'UPU',documentCode:'',extraField1:'',extraField2:''},
+  {code:'SGA',name:'Singapore',note:'',region:'Asia-Pacific',category:'UPU IC',documentCode:'',extraField1:'',extraField2:''},
+  {code:'TRA',name:'Turkije',note:'',region:'Europe & CIS',category:'UPU',documentCode:'',extraField1:'',extraField2:''},
+  {code:'TWA',name:'Taiwan',note:'',region:'Asia-Pacific',category:'UPU IC',documentCode:'',extraField1:'',extraField2:''},
+  {code:'UKA',name:'Ukraine',note:'',region:'Europe & CIS',category:'UPU',documentCode:'',extraField1:'',extraField2:''},
+  {code:'USA',name:'USA',note:'zonder IPEP',region:'Americas',category:'UPU IC',documentCode:'',extraField1:'',extraField2:''},
+  {code:'VAA',name:'Vatican City',note:'geen sampling',region:'Europe & CIS',category:'REIMS',documentCode:'',extraField1:'',extraField2:''},
+  {code:'ZAA',name:'Zuid-Afrika',note:'',region:'Africa',category:'UPU',documentCode:'',extraField1:'',extraField2:''}
 ];
 
 const FLOW_STATUSES = ['Not started', 'Under review', 'Final', 'Declined'];
 const YEARS = [String(new Date().getFullYear() - 1), String(new Date().getFullYear()), String(new Date().getFullYear() + 1)];
-const CATEGORIES = ['Weight', 'IPK', 'Agreement', 'Invoice'];
+const CATEGORIES = ['Weight', 'IPK', 'Agreement', 'Invoice', 'Countries', 'History'];
 const QUARTERS = ['Q1', 'Q2', 'Q3', 'Q4'];
+const COUNTRY_CATEGORIES = ['REIMS', 'UPU', 'UPU IC', 'Other'];
 
 let selectedYear = YEARS[1];
-let selectedCountry = COUNTRIES[0].code;
+let countries = JSON.parse(JSON.stringify(INITIAL_COUNTRIES));
+let selectedCountry = countries[0].code;
 let activeCategory = 'Weight';
 let activeDirection = 'Inbound';
 let tracker = {};
+let auditLog = [];
 
 function defaultFlow() {
   return {Q1:'Not started', Q2:'Not started', Q3:'Not started', Q4:'Not started'};
@@ -156,6 +171,22 @@ function getRecord(year, code) {
   if (!tracker[year]) tracker[year] = {};
   if (!tracker[year][code]) tracker[year][code] = defaultRecord();
   return tracker[year][code];
+}
+
+function getCountry(code) {
+  return countries.find(c => c.code === code);
+}
+
+function addAuditEntry(countryCode, field, oldValue, newValue) {
+  if (String(oldValue ?? '') === String(newValue ?? '')) return;
+  auditLog.unshift({
+    date: new Date().toISOString(),
+    user: CURRENT_USER,
+    countryCode,
+    field,
+    oldValue: oldValue ?? '',
+    newValue: newValue ?? ''
+  });
 }
 
 function toBadgeClass(status) {
@@ -179,6 +210,7 @@ function getContextStatus(record) {
   if (activeCategory === 'Weight') return summarizeFlow(record.weight[activeDirection.toLowerCase()]);
   if (activeCategory === 'IPK') return summarizeFlow(record.ipk[activeDirection.toLowerCase()]);
   if (activeCategory === 'Agreement') return summarizeAgreement(record.agreement);
+  if (activeCategory === 'Countries' || activeCategory === 'History') return 'Not started';
   return record.invoice.status;
 }
 
@@ -189,7 +221,7 @@ function onYearChange(year) {
 
 function setCategory(category) {
   activeCategory = category;
-  if (category === 'Agreement' || category === 'Invoice') activeDirection = 'Inbound';
+  if (category === 'Agreement' || category === 'Invoice' || category === 'Countries' || category === 'History') activeDirection = 'Inbound';
   renderAll();
 }
 
@@ -200,33 +232,127 @@ function setDirection(direction) {
 
 function updateQuarter(category, direction, quarter, value) {
   const record = getRecord(selectedYear, selectedCountry);
+  const oldValue = record[category][direction][quarter];
   record[category][direction][quarter] = value;
+  addAuditEntry(selectedCountry, `${category}.${direction}.${quarter}`, oldValue, value);
   renderAll();
 }
 
 function updateAgreement(key, value) {
-  getRecord(selectedYear, selectedCountry).agreement[key] = value;
+  const record = getRecord(selectedYear, selectedCountry);
+  const oldValue = record.agreement[key];
+  record.agreement[key] = value;
+  addAuditEntry(selectedCountry, `agreement.${key}`, oldValue, value);
   renderAll();
 }
 
 function updateInvoiceStatus(value) {
-  getRecord(selectedYear, selectedCountry).invoice.status = value;
+  const record = getRecord(selectedYear, selectedCountry);
+  const oldValue = record.invoice.status;
+  record.invoice.status = value;
+  addAuditEntry(selectedCountry, 'invoice.status', oldValue, value);
   renderAll();
 }
 
 function updateInvoiceNote(value) {
-  getRecord(selectedYear, selectedCountry).invoice.note = value;
+  const record = getRecord(selectedYear, selectedCountry);
+  const oldValue = record.invoice.note;
+  record.invoice.note = value;
+  addAuditEntry(selectedCountry, 'invoice.note', oldValue, value);
+}
+
+function updateCountryField(code, field, value) {
+  const country = getCountry(code);
+  if (!country) return;
+  const normalizedValue = field === 'code' ? value.toUpperCase() : value;
+  const oldValue = country[field] || '';
+  if (field === 'code') {
+    const newCode = normalizedValue.trim();
+    if (!newCode) return;
+    if (newCode !== code && getCountry(newCode)) {
+      alert('Country code already exists.');
+      renderAll();
+      return;
+    }
+    country.code = newCode;
+    if (tracker[selectedYear] && tracker[selectedYear][code]) {
+      tracker[selectedYear][newCode] = tracker[selectedYear][code];
+      delete tracker[selectedYear][code];
+    }
+    if (selectedCountry === code) selectedCountry = newCode;
+  } else {
+    country[field] = normalizedValue;
+  }
+  addAuditEntry(country.code, `country.${field}`, oldValue, normalizedValue);
+  initControls();
+  renderAll();
+}
+
+function addCountryRow() {
+  const codeInput = prompt('Enter country code (example: DEA)');
+  if (!codeInput) return;
+  const code = codeInput.trim().toUpperCase();
+  if (getCountry(code)) {
+    alert('Country code already exists.');
+    return;
+  }
+  const nameInput = prompt('Enter country name');
+  if (!nameInput) return;
+  const newCountry = {
+    code,
+    name: nameInput.trim(),
+    note: '',
+    region: 'Europe & CIS',
+    category: 'Other',
+    documentCode: '',
+    extraField1: '',
+    extraField2: ''
+  };
+  countries.push(newCountry);
+  selectedCountry = newCountry.code;
+  addAuditEntry(newCountry.code, 'country.created', '', JSON.stringify(newCountry));
+  initControls();
+  renderAll();
+}
+
+function removeCountryRow(code) {
+  const country = getCountry(code);
+  if (!country) return;
+  if (!confirm(`Delete ${country.name} (${country.code})?`)) return;
+  countries = countries.filter(c => c.code !== code);
+  addAuditEntry(code, 'country.deleted', JSON.stringify(country), '');
+  if (selectedCountry === code) {
+    selectedCountry = countries[0] ? countries[0].code : '';
+  }
+  initControls();
+  renderAll();
+}
+
+function downloadCSV(rows, fileName) {
+  const csv = rows.map(r => r.map(v => `"${String(v || '').replace(/"/g, '""')}"`).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = fileName;
+  a.click();
 }
 
 function exportYearCSV() {
-  const rows = [['Year', 'Code', 'Country', 'Region', 'Weight Inbound', 'Weight Outbound', 'IPK Inbound', 'IPK Outbound', 'Agreement', 'Invoice']];
-  COUNTRIES.forEach(country => {
+  const rows = [[
+    'Year', 'Code', 'Country', 'Region', 'Country Category', 'Document Code', 'Note', 'Extra Field 1', 'Extra Field 2',
+    'Weight Inbound', 'Weight Outbound', 'IPK Inbound', 'IPK Outbound', 'Agreement', 'Invoice'
+  ]];
+  countries.forEach(country => {
     const record = getRecord(selectedYear, country.code);
     rows.push([
       selectedYear,
       country.code,
       country.name,
       country.region,
+      country.category,
+      country.documentCode,
+      country.note,
+      country.extraField1,
+      country.extraField2,
       summarizeFlow(record.weight.inbound),
       summarizeFlow(record.weight.outbound),
       summarizeFlow(record.ipk.inbound),
@@ -235,22 +361,45 @@ function exportYearCSV() {
       record.invoice.status
     ]);
   });
-  const csv = rows.map(r => r.map(v => `"${String(v || '').replace(/"/g, '""')}"`).join(',')).join('\n');
-  const a = document.createElement('a');
-  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
-  a.download = `PostNL_Letter_Mail_${selectedYear}.csv`;
-  a.click();
+  downloadCSV(rows, `PostNL_Letter_Mail_${selectedYear}.csv`);
+}
+
+function exportCountriesCSV() {
+  const rows = [['Code', 'Country', 'Region', 'Category', 'Document Code', 'Note', 'Extra Field 1', 'Extra Field 2']];
+  countries.forEach(country => {
+    rows.push([
+      country.code,
+      country.name,
+      country.region,
+      country.category,
+      country.documentCode,
+      country.note,
+      country.extraField1,
+      country.extraField2
+    ]);
+  });
+  downloadCSV(rows, 'PostNL_Countries_Master.csv');
+}
+
+function exportAuditCSV() {
+  const rows = [['Date', 'User', 'Country Code', 'Field', 'Old Value', 'New Value']];
+  auditLog.forEach(entry => {
+    rows.push([entry.date, entry.user, entry.countryCode, entry.field, entry.oldValue, entry.newValue]);
+  });
+  downloadCSV(rows, 'PostNL_Audit_Log.csv');
 }
 
 function filteredCountries() {
   const q = document.getElementById('search-box').value.toLowerCase();
   const region = document.getElementById('region-filter').value;
   const statusFilter = document.getElementById('status-filter').value;
-  return COUNTRIES.filter(country => {
-    if (q && !country.name.toLowerCase().includes(q) && !country.code.toLowerCase().includes(q)) return false;
+  return countries.filter(country => {
+    if (q && !country.name.toLowerCase().includes(q) && !country.code.toLowerCase().includes(q) && !(country.documentCode || '').toLowerCase().includes(q)) return false;
     if (region !== 'All regions' && country.region !== region) return false;
-    const status = getContextStatus(getRecord(selectedYear, country.code));
-    if (statusFilter !== 'All' && status !== statusFilter) return false;
+    if (activeCategory !== 'Countries' && activeCategory !== 'History') {
+      const status = getContextStatus(getRecord(selectedYear, country.code));
+      if (statusFilter !== 'All' && status !== statusFilter) return false;
+    }
     return true;
   });
 }
@@ -259,7 +408,7 @@ function renderSummary() {
   const counts = {};
   const statusOptions = activeCategory === 'Agreement' ? ['Yes', 'No'] : FLOW_STATUSES;
   statusOptions.forEach(status => counts[status] = 0);
-  COUNTRIES.forEach(country => {
+  countries.forEach(country => {
     const status = getContextStatus(getRecord(selectedYear, country.code));
     if (counts[status] !== undefined) counts[status] += 1;
   });
@@ -281,10 +430,16 @@ function renderSidebar() {
       return `
         <div class="country-row${country.code===selectedCountry ? ' active' : ''}" onclick="selectedCountry='${country.code}'; renderAll();">
           <span class="c-code">${country.code}</span>
-          <span class="c-name">${country.name}</span>
+          <div class="c-main">
+            <div class="c-name">${country.name}</div>
+            <div class="c-meta">
+              <span class="c-sub">${country.region}</span>
+              <span class="c-sub">${country.category}</span>
+              <span class="c-sub">Doc: ${country.documentCode || '-'}</span>
+            </div>
+          </div>
           <span class="badge ${toBadgeClass(status)}">${status}</span>
-        </div>
-        <div class="c-region" style="padding:0 12px 8px 50px">${country.region}</div>`;
+        </div>`;
     }).join('');
 }
 
@@ -362,13 +517,124 @@ function renderInvoice(record) {
     </div>`;
 }
 
+function renderCountriesAdmin() {
+  return `
+    <div class="section">
+      <h2>Countries master table</h2>
+      <div class="muted" style="margin-bottom:10px">Manage country category, document code and unique country fields.</div>
+      <div class="export-row" style="justify-content:flex-start; margin-bottom:10px;">
+        <button class="btn" onclick="addCountryRow()">Add new country</button>
+        <button class="btn" onclick="exportCountriesCSV()">Export countries Excel/CSV</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Code</th>
+              <th>Country</th>
+              <th>Region</th>
+              <th>Category</th>
+              <th>Document code</th>
+              <th>Note</th>
+              <th>Extra field 1</th>
+              <th>Extra field 2</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${countries.map(country => `
+              <tr>
+                <td><input class="txt" value="${country.code}" onchange="updateCountryField('${country.code}', 'code', this.value)"></td>
+                <td><input class="txt" value="${country.name}" onchange="updateCountryField('${country.code}', 'name', this.value)"></td>
+                <td><input class="txt" value="${country.region}" onchange="updateCountryField('${country.code}', 'region', this.value)"></td>
+                <td>
+                  <select class="sel" onchange="updateCountryField('${country.code}', 'category', this.value)">
+                    ${COUNTRY_CATEGORIES.map(category => `<option value="${category}"${country.category===category?' selected':''}>${category}</option>`).join('')}
+                  </select>
+                </td>
+                <td><input class="txt" value="${country.documentCode || ''}" onchange="updateCountryField('${country.code}', 'documentCode', this.value)"></td>
+                <td><input class="txt" value="${country.note || ''}" onchange="updateCountryField('${country.code}', 'note', this.value)"></td>
+                <td><input class="txt" value="${country.extraField1 || ''}" onchange="updateCountryField('${country.code}', 'extraField1', this.value)"></td>
+                <td><input class="txt" value="${country.extraField2 || ''}" onchange="updateCountryField('${country.code}', 'extraField2', this.value)"></td>
+                <td><button class="mini-btn" onclick="removeCountryRow('${country.code}')">Delete</button></td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
+function renderHistory() {
+  return `
+    <div class="section">
+      <h2>Change history</h2>
+      <div class="muted" style="margin-bottom:10px">Shows who made the change and on which date.</div>
+      <div class="export-row" style="justify-content:flex-start; margin-bottom:10px;">
+        <button class="btn" onclick="exportAuditCSV()">Export history Excel/CSV</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>User</th>
+              <th>Country</th>
+              <th>Field</th>
+              <th>Old value</th>
+              <th>New value</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${auditLog.length === 0 ? '<tr><td colspan="6" class="empty">No changes recorded yet.</td></tr>' : auditLog.map(entry => `
+              <tr>
+                <td>${new Date(entry.date).toLocaleString()}</td>
+                <td>${entry.user}</td>
+                <td>${entry.countryCode}</td>
+                <td>${entry.field}</td>
+                <td>${entry.oldValue || '-'}</td>
+                <td>${entry.newValue || '-'}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>`;
+}
+
 function renderDetail() {
   const panel = document.getElementById('detail-panel');
+  if (activeCategory === 'Countries') {
+    panel.innerHTML = `
+      <div class="section">
+        <h2>Administration</h2>
+        <div class="muted">Use this section to maintain the countries master data.</div>
+      </div>
+      <div class="section">
+        <h2>Category</h2>
+        ${renderCategoryTabs()}
+      </div>
+      ${renderCountriesAdmin()}`;
+    return;
+  }
+  if (activeCategory === 'History') {
+    panel.innerHTML = `
+      <div class="section">
+        <h2>Audit</h2>
+        <div class="muted">Track changes by user and date.</div>
+      </div>
+      <div class="section">
+        <h2>Category</h2>
+        ${renderCategoryTabs()}
+      </div>
+      ${renderHistory()}`;
+    return;
+  }
   if (!selectedCountry) {
     panel.innerHTML = '<div class="section empty">No country selected for the current filters.</div>';
     return;
   }
-  const country = COUNTRIES.find(c => c.code === selectedCountry);
+  const country = getCountry(selectedCountry);
   const record = getRecord(selectedYear, selectedCountry);
   const status = getContextStatus(record);
   const categorySection = activeCategory === 'Weight'
@@ -381,7 +647,7 @@ function renderDetail() {
   panel.innerHTML = `
     <div class="section">
       <h2>${country.name}</h2>
-      <div class="muted">${country.code}${country.note ? ' · ' + country.note : ''} · ${country.region} · Year ${selectedYear}</div>
+      <div class="muted">${country.code}${country.note ? ' · ' + country.note : ''} · ${country.region} · ${country.category} · Doc: ${country.documentCode || '-'} · Year ${selectedYear}</div>
       <div style="margin-top:10px"><span class="badge ${toBadgeClass(status)}">${status}</span></div>
     </div>
     <div class="section">
@@ -391,7 +657,7 @@ function renderDetail() {
     ${categorySection}
     <div class="section">
       <div class="export-row">
-        <button class="btn" onclick="exportYearCSV()">Export year overview CSV</button>
+        <button class="btn" onclick="exportYearCSV()">Export year overview Excel/CSV</button>
       </div>
     </div>`;
 }
@@ -404,7 +670,7 @@ function renderAll() {
 
 function initControls() {
   document.getElementById('year-sel').innerHTML = YEARS.map(year => `<option value="${year}"${year===selectedYear?' selected':''}>${year}</option>`).join('');
-  const regions = ['All regions', ...new Set(COUNTRIES.map(country => country.region))];
+  const regions = ['All regions', ...new Set(countries.map(country => country.region))];
   document.getElementById('region-filter').innerHTML = regions.map(region => `<option>${region}</option>`).join('');
 }
 
