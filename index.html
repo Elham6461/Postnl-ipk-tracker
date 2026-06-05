@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PostNL Letter Mail Tracker</title>
+  <link rel="stylesheet" href="./styles/styles.css">
+</head>
+<body>
+  <div class="topbar">
+    <h1>PostNL Letter Mail Tracker</h1>
+    <div class="ctrl">
+      <label for="year-sel">Year</label>
+      <select id="year-sel" class="sel"></select>
+    </div>
+    <div class="ctrl">
+      <label for="region-filter">Region</label>
+      <select id="region-filter" class="sel"></select>
+    </div>
+    <div class="ctrl">
+      <label for="status-filter">Status</label>
+      <select id="status-filter" class="sel"></select>
+    </div>
+    <div class="sum-chips" id="sum-chips"></div>
+  </div>
+
+  <div class="main">
+    <aside class="sidebar">
+      <div class="sidebar-search">
+        <input class="txt" id="search-box" type="text" placeholder="Search country...">
+      </div>
+      <div class="sidebar-scroll" id="sidebar-list"></div>
+    </aside>
+    <main class="detail" id="detail-panel"></main>
+  </div>
+
+  <script type="module" src="./js/app.js"></script>
+</body>
+</html>
