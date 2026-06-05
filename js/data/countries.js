@@ -1,0 +1,31 @@
+export const COUNTRIES = [
+  { code: 'ARA', name: 'Argentinie', note: '', region: 'Americas' },
+  { code: 'AUA', name: 'Australie', note: '', region: 'Asia-Pacific' },
+  { code: 'BRA', name: 'Brazilië', note: '', region: 'Americas' },
+  { code: 'BGA', name: 'Bulgarije', note: '', region: 'Europe & CIS' },
+  { code: 'CAA', name: 'Canada', note: '', region: 'Americas' },
+  { code: 'CLA', name: 'Chili', note: '', region: 'Americas' },
+  { code: 'CNA', name: 'China', note: '', region: 'Asia-Pacific' },
+  { code: 'CYA', name: 'Cyprus', note: '', region: 'Europe & CIS' },
+  { code: 'HKA', name: 'Hong Kong', note: '', region: 'Asia-Pacific' },
+  { code: 'HRA', name: 'Kroatië', note: 'e53 IPEP', region: 'Europe & CIS' },
+  { code: 'ISA', name: 'Israël', note: '', region: 'Europe & CIS' },
+  { code: 'JEA', name: 'Jersey', note: 'excl GBHATA', region: 'Europe & CIS' },
+  { code: 'JPA', name: 'Japan', note: '', region: 'Asia-Pacific' },
+  { code: 'KRA', name: 'Zuid-Korea', note: '', region: 'Asia-Pacific' },
+  { code: 'MCA', name: 'Monaco', note: '', region: 'Europe & CIS' },
+  { code: 'MTA', name: 'Malta', note: '', region: 'Europe & CIS' },
+  { code: 'MXA', name: 'Mexico', note: '', region: 'Americas' },
+  { code: 'MYA', name: 'Maleisië', note: '', region: 'Asia-Pacific' },
+  { code: 'NZA', name: 'New Zealand', note: '', region: 'Asia-Pacific' },
+  { code: 'RUA', name: 'Rusland', note: '', region: 'Europe & CIS' },
+  { code: 'SGA', name: 'Singapore', note: '', region: 'Asia-Pacific' },
+  { code: 'TRA', name: 'Turkije', note: '', region: 'Europe & CIS' },
+  { code: 'TWA', name: 'Taiwan', note: '', region: 'Asia-Pacific' },
+  { code: 'UKA', name: 'Ukraine', note: '', region: 'Europe & CIS' },
+  { code: 'USA', name: 'USA', note: 'zonder IPEP', region: 'Americas' },
+  { code: 'VAA', name: 'Vatican City', note: 'geen sampling', region: 'Europe & CIS' },
+  { code: 'ZAA', name: 'Zuid-Afrika', note: '', region: 'Africa' }
+];
+
+export const REGIONS = ['All regions', ...new Set(COUNTRIES.map((country) => country.region))];
